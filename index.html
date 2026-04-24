@@ -664,7 +664,7 @@
       const sel = document.getElementById('ad-p-cat-select');
       
       // 💡 핵심 수정: 맨 앞에 [카테고리 선택] 항목을 기본값(value="")으로 추가했습니다.
-      sel.innerHTML = '<option value="" disabled selected>[카테고리 선택]</option><option value="direct">[+ 카테고리 직접 입력]</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      sel.innerHTML = '<option value="" disabled selected>[카테고리 선택]</option><option value="direct">[+ 직접 입력]</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
       
       document.getElementById('ad-p-list').innerHTML = products.map(p => `
         <div class="ad-p-item" onclick="editProduct('${p.id}')">
