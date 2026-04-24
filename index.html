@@ -49,7 +49,8 @@
     .p-price { color: var(--teal); font-weight: 900; font-size: 14px; margin-bottom: 4px; }
     .p-stock { font-size: 11px; font-weight: bold; color: #fff; background: var(--navy); padding: 3px 8px; border-radius: 6px; display: inline-block; }
 
-    .sold-out { filter: grayscale(100%); opacity: 0.5; pointer-events: none; }
+    .sold-out { pointer-events: none; }
+    .sold-out .p-img, .sold-out .p-info { filter: grayscale(100%); opacity: 0.5; }
     .sold-out-badge { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(250,82,82,0.9); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 15px; border: 2px solid white; z-index: 2; width: max-content; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
     .tabs { display: flex; gap: 8px; padding: 12px; background: var(--white); overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #eee; flex-shrink: 0; }
@@ -629,9 +630,11 @@
       document.getElementById('admin-' + t).style.display = 'flex';
       document.querySelectorAll('#page-admin .tab').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
-      if (t === 'product') loadAdminProducts();
+      
+      // 💡 핵심 수정: 상품 탭 진입 시 무조건 폼을 깨끗하게 초기화합니다!
+      if (t === 'product') { resetAdminForm(); loadAdminProducts(); } 
       if (t === 'asset') loadAdminStudents();
-      if (t === 'invite') generateInviteQR(); // 학생 초대 탭 클릭 시 QR 생성
+      if (t === 'invite') generateInviteQR(); 
     }
 
     // 💡 마법 링크(초대장) QR코드를 그려주는 새로운 함수
@@ -659,7 +662,9 @@
       const res = await callApi('getProducts'); products = res.data;
       const cats = [...new Set(products.map(p => p.category))];
       const sel = document.getElementById('ad-p-cat-select');
-      sel.innerHTML = '<option value="direct">[+ 카테고리 직접 입력]</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      
+      // 💡 핵심 수정: 맨 앞에 [카테고리 선택] 항목을 기본값(value="")으로 추가했습니다.
+      sel.innerHTML = '<option value="" disabled selected>[카테고리 선택]</option><option value="direct">[+ 카테고리 직접 입력]</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
       
       document.getElementById('ad-p-list').innerHTML = products.map(p => `
         <div class="ad-p-item" onclick="editProduct('${p.id}')">
@@ -698,11 +703,18 @@
     }
 
     async function saveProduct() {
-      const catSelect = document.getElementById('ad-p-cat-select').value;
-      const category = catSelect === 'direct' ? document.getElementById('ad-p-cat-direct').value : catSelect;
-      const name = document.getElementById('ad-p-name').value;
-      const price = document.getElementById('ad-p-price').value;
-      const stock = document.getElementById('ad-p-stock').value;
+  // 1. 먼저 선택된 값을 가져오고... (기존)
+  const catSelect = document.getElementById('ad-p-cat-select').value;
+  
+  // 💡 [여기서 추가!] 만약 선택된 값이 빈칸("")이라면?
+  // 선생님 아이디어로 넣은 "[카테고리 선택]"이 빈칸이기 때문입니다.
+  if (catSelect === "") return await customAlert("카테고리를 선택하거나 직접 입력해주세요.");
+
+  // 2. 이 아래부터는 기존과 동일하게 흘러갑니다.
+  const category = catSelect === 'direct' ? document.getElementById('ad-p-cat-direct').value : catSelect;
+  const name = document.getElementById('ad-p-name').value;
+  const price = document.getElementById('ad-p-price').value;
+  const stock = document.getElementById('ad-p-stock').value;
       
       if (!category || !name || !price || !stock) return await customAlert("카테고리, 상품명, 가격, 재고는 필수 입력 항목입니다.");
 
@@ -726,7 +738,10 @@
       document.getElementById('ad-p-id').value = ""; document.getElementById('ad-p-name').value = "";
       document.getElementById('ad-p-price').value = ""; document.getElementById('ad-p-stock').value = "";
       document.getElementById('ad-p-img').value = ""; document.getElementById('ad-p-cat-direct').value = "";
-      document.getElementById('ad-p-cat-select').value = "direct";
+      
+      // 💡 핵심 수정: 초기값을 'direct'가 아니라 빈칸(선택 안함) 상태로 바꿉니다.
+      document.getElementById('ad-p-cat-select').value = ""; 
+      
       toggleCatInput();
       document.getElementById('ad-p-btn').innerText = "상품 등록하기";
       document.getElementById('ad-p-cancel-btn').style.display = 'none';
