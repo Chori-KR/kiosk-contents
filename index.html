@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>초리쌤의 키오스크 v5.5</title>
+  <title>초리쌤 스마트 상점 v5.5</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -568,26 +568,20 @@
       `).join('');
 
       // 💡 결제 중복 알림 방지 플래그 초기화
-      isPollingActive = true; 
+     isPollingActive = true; 
 
       pollInterval = setInterval(async () => {
-        // 이미 처리가 끝났다면 중단
-        isPollingActive = true; // 타이머 시작 전 자물쇠 ON!
-
-      pollInterval = setInterval(async () => {
-        // 이미 결제가 끝났다면(자물쇠가 풀렸다면) 즉시 중단하여 알림 중복 방지
         if (!isPollingActive) return; 
         
-        // 조용히(true) 서버에 결제 상태 확인
         const res = await callApi('checkPaymentStatus', [orderId], true);
         
         if (res.status === '완료' || !res.status) { 
-          isPollingActive = false; // 성공 확인 즉시 자물쇠 풀기! (이후 도착하는 응답 무시)
+          isPollingActive = false; 
           clearInterval(pollInterval);
           await customAlert("결제가 성공적으로 완료되었습니다!");
           cart = []; updateCartUI(); nav('kiosk-main');
         } else if (res.status === '잔액부족') {
-          isPollingActive = false; // 잔액 부족 시에도 자물쇠 풀기!
+          isPollingActive = false; 
           clearInterval(pollInterval);
           await customAlert("학생의 잔액이 부족합니다.");
         }
