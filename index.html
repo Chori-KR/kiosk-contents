@@ -21,46 +21,52 @@
     .btn-home { background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
     .btn-home svg { width: 24px; height: 24px; stroke: var(--navy); stroke-width: 2; fill: none; }
 
-    .retro-receipt {
-      background: #fcfcfc; /* 감열지 느낌의 약간 밝은 회색/흰색 */
-      border: 1px solid #ddd;
-      padding: 20px;
-      margin-bottom: 16px;
-      font-family: 'Courier New', Courier, monospace; /* 타자기(포스기) 폰트 */
-      color: #333;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-    }
-    .retro-header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .retro-header img {
-      height: 45px; /* 로고 크기를 너무 크지 않게 조절 */
-      vertical-align: middle;
-      margin-bottom: 8px;
-    }
-    .retro-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-    .retro-divider {
-      border-bottom: 1px dashed #666; /* 점선 테두리 */
-      margin: 8px 0;
-    }
-    .retro-row {
+    .receipt-summary {
+      background: var(--navy);
+      color: var(--white);
+      padding: 16px 20px;
+      border-radius: 20px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 8px; /* 닫혀있을 때 간격 */
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 2; /* 영수증보다 위로 올라오게 */
+    }
+    .receipt-summary:active { transform: scale(0.98); }
+    
+    .receipt-details {
+      display: none; /* 기본적으로 숨겨둠 */
+      margin-bottom: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .chevron {
+      margin-left: 12px;
       font-size: 14px;
-      margin-bottom: 4px;
+      color: var(--sub); /* 화살표 색상 */
     }
-    .retro-total {
-      text-align: right;
-      font-size: 18px;
-      font-weight: 900;
-      margin-top: 12px;
-      color: var(--navy);
+
+    .retro-receipt {
+      background: #fcfcfc;
+      border: 1px solid #ddd;
+      /* 💡 요약창 아래에서 자연스럽게 빠져나오는 느낌을 줍니다 */
+      margin-top: -20px; 
+      padding: 36px 20px 20px 20px; 
+      border-radius: 0 0 16px 16px; 
+      font-family: 'Courier New', Courier, monospace;
+      color: #333;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
     }
+    .retro-header { text-align: center; margin-bottom: 16px; }
+    .retro-header img { height: 45px; vertical-align: middle; margin-bottom: 8px; }
+    .retro-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+    .retro-divider { border-bottom: 1px dashed #666; margin: 8px 0; }
+    .retro-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+    .retro-total { text-align: right; font-size: 18px; font-weight: 900; margin-top: 12px; color: var(--navy); }
 
     /* 모달 및 로딩 CSS */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s; }
@@ -182,7 +188,7 @@
   </div>
 
   <div id="page-config" class="page active" style="justify-content: center; padding: 40px; text-align:center;">
-    <img src="https://i.imgur.com/AprCv2B.png" class="brand-img" alt="호랑이">
+    <img src="https://i.imgur.com/U8UHMlG.png" class="brand-img" alt="호랑이">
     <h2 style="color:var(--navy); margin-bottom:8px; font-size:22px;">초리쌤의 교육 콘텐츠</h2>
     <h1 style="color:var(--teal); margin-top:0; margin-bottom:24px; font-size:24px;">교육용 키오스크 체험</h1>
     <p style="color:var(--sub); margin-bottom:16px;">구글 앱스 스크립트 웹앱 URL을 입력하세요.</p>
@@ -191,7 +197,7 @@
   </div>
 
   <div id="page-gate" class="page" style="justify-content:center; align-items:center; padding:24px;">
-    <img src="https://i.imgur.com/AprCv2B.png" class="brand-img" alt="호랑이">
+    <img src="https://i.imgur.com/U8UHMlG.png" class="brand-img" alt="호랑이">
     <h1 style="color:var(--navy); margin-bottom:40px;">초리쌤 키오스크</h1>
     <div style="width:100%; display:flex; flex-direction:column; gap:16px; max-width: 320px;">
       <button class="btn-main" style="height:80px; font-size:18px; background:var(--navy); border-radius:20px;" onclick="goMode('wallet')">학생 지갑 모드</button>
@@ -529,19 +535,13 @@
       
       const listDiv = document.getElementById('receipt-list');
       if(res.success && res.data.length > 0) {
-        // 💡 총 영수증 개수를 가져와서 누적 번호를 계산합니다.
         const totalReceipts = res.data.length; 
         
-        // 최신순(reverse)으로 정렬하여 보여줍니다.
         listDiv.innerHTML = res.data.reverse().map((r, index) => {
-          
-          // 1. 영수증 번호 만들기 (총개수 - 현재인덱스로 0001, 0002 순서 생성)
           const orderNum = String(totalReceipts - index).padStart(4, '0');
           const receiptNo = `${currentStudent.id}-${orderNum}`;
           
-          // 2. 상품명 괄호 제거 및 줄 맞춤
           const itemsHtml = r.items.map(item => {
-            // 정규식을 사용해 " (영문)" 형태를 깔끔하게 지웁니다.
             const cleanName = item.name.replace(/\s*\(.*?\)\s*/g, ''); 
             return `
               <div class="retro-row">
@@ -551,11 +551,64 @@
               </div>`;
           }).join('');
 
+          // 💡 열고 닫을 때 서로를 구분하기 위한 고유 이름(ID) 만들기
+          const detailId = `receipt-detail-${index}`;
+          const chevronId = `chevron-${index}`;
+
+          return `
+          <div>
+            <div class="receipt-summary" onclick="toggleReceipt('${detailId}', '${chevronId}')">
+              <span>${r.time}</span>
+              <div style="display:flex; align-items:center;">
+                <span style="color:var(--teal);">${f(r.amount)}</span>
+                <span id="${chevronId}" class="chevron">∨</span>
+              </div>
+            </div>
+
+            <div id="${detailId}" class="receipt-details">
+              <div class="retro-receipt">
+                <div class="retro-header">
+                  <img src="https://i.imgur.com/AprCv2B.png" alt="초리쌤 로고">
+                  <div class="retro-title">초리쌤 키오스크</div>
+                </div>
+                <div style="font-size:12px; margin-bottom:4px;">[영수증 번호] ${receiptNo}</div>
+                <div class="retro-divider"></div>
+                <div class="retro-row" style="font-weight:bold;">
+                  <span style="flex:2; text-align:left;">상품명</span>
+                  <span style="flex:1; text-align:right;">수량</span>
+                  <span style="flex:1; text-align:right;">금액</span>
+                </div>
+                <div class="retro-divider"></div>
+                ${itemsHtml}
+                <div class="retro-divider"></div>
+                <div class="retro-total">합계: ${f(r.amount)}</div>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+      } else {
+        listDiv.innerHTML = `<div style="text-align:center; color:var(--sub); margin-top:40px;">결제 내역이 없습니다.</div>`;
+      }
+    }
+
+    function toggleReceipt(detailId, chevronId) {
+      const detail = document.getElementById(detailId);
+      const chevron = document.getElementById(chevronId);
+      
+      if (detail.style.display === 'block') {
+        detail.style.display = 'none'; // 숨기기
+        chevron.innerText = '∨'; // 아래를 향한 부등호 (닫힘)
+      } else {
+        detail.style.display = 'block'; // 보이기
+        chevron.innerText = '∧'; // 위를 향한 부등호 (열림)
+      }
+    }
+
           // 3. 실제 종이 영수증 모양 그리기
           return `
           <div class="retro-receipt">
             <div class="retro-header">
-              <img src="https://i.imgur.com/AprCv2B.png" alt="초리쌤 로고">
+              <img src="https://i.imgur.com/U8UHMlG.png" alt="초리쌤 로고">
               <div class="retro-title">초리쌤 키오스크</div>
             </div>
             
