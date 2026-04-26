@@ -604,36 +604,6 @@
       }
     }
 
-          // 3. 실제 종이 영수증 모양 그리기
-          return `
-          <div class="retro-receipt">
-            <div class="retro-header">
-              <img src="https://i.imgur.com/U8UHMlG.png" alt="초리쌤 로고">
-              <div class="retro-title">초리쌤 키오스크</div>
-            </div>
-            
-            <div style="font-size:12px; margin-bottom:4px;">[영수증 번호] ${receiptNo}</div>
-            <div style="font-size:12px; margin-bottom:8px;">[결제 일시] ${r.time}</div>
-            
-            <div class="retro-divider"></div>
-            <div class="retro-row" style="font-weight:bold;">
-              <span style="flex:2; text-align:left;">상품명</span>
-              <span style="flex:1; text-align:right;">수량</span>
-              <span style="flex:1; text-align:right;">금액</span>
-            </div>
-            <div class="retro-divider"></div>
-            
-            ${itemsHtml}
-            
-            <div class="retro-divider"></div>
-            <div class="retro-total">합계: ${f(r.amount)}</div>
-          </div>`;
-        }).join('');
-      } else {
-        listDiv.innerHTML = `<div style="text-align:center; color:var(--sub); margin-top:40px;">결제 내역이 없습니다.</div>`;
-      }
-    }
-
     async function loadKiosk() {
       const res = await callApi('getProducts');
       if (res.success) { products = res.data; renderKioskTabs(); renderKioskItems('전체'); }
