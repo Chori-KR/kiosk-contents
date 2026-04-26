@@ -21,6 +21,47 @@
     .btn-home { background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
     .btn-home svg { width: 24px; height: 24px; stroke: var(--navy); stroke-width: 2; fill: none; }
 
+    .retro-receipt {
+      background: #fcfcfc; /* 감열지 느낌의 약간 밝은 회색/흰색 */
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-bottom: 16px;
+      font-family: 'Courier New', Courier, monospace; /* 타자기(포스기) 폰트 */
+      color: #333;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    .retro-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .retro-header img {
+      height: 45px; /* 로고 크기를 너무 크지 않게 조절 */
+      vertical-align: middle;
+      margin-bottom: 8px;
+    }
+    .retro-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .retro-divider {
+      border-bottom: 1px dashed #666; /* 점선 테두리 */
+      margin: 8px 0;
+    }
+    .retro-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .retro-total {
+      text-align: right;
+      font-size: 18px;
+      font-weight: 900;
+      margin-top: 12px;
+      color: var(--navy);
+    }
+
     /* 모달 및 로딩 CSS */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s; }
     .modal { background: var(--white); padding: 24px; border-radius: 16px; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; }
@@ -141,7 +182,7 @@
   </div>
 
   <div id="page-config" class="page active" style="justify-content: center; padding: 40px; text-align:center;">
-    <img src="https://i.imgur.com/pNk2fly.png" class="brand-img" alt="호랑이">
+    <img src="https://i.imgur.com/AprCv2B.png" class="brand-img" alt="호랑이">
     <h2 style="color:var(--navy); margin-bottom:8px; font-size:22px;">초리쌤의 교육 콘텐츠</h2>
     <h1 style="color:var(--teal); margin-top:0; margin-bottom:24px; font-size:24px;">교육용 키오스크 체험</h1>
     <p style="color:var(--sub); margin-bottom:16px;">구글 앱스 스크립트 웹앱 URL을 입력하세요.</p>
@@ -150,7 +191,7 @@
   </div>
 
   <div id="page-gate" class="page" style="justify-content:center; align-items:center; padding:24px;">
-    <img src="https://i.imgur.com/pNk2fly.png" class="brand-img" alt="호랑이">
+    <img src="https://i.imgur.com/AprCv2B.png" class="brand-img" alt="호랑이">
     <h1 style="color:var(--navy); margin-bottom:40px;">초리쌤 키오스크</h1>
     <div style="width:100%; display:flex; flex-direction:column; gap:16px; max-width: 320px;">
       <button class="btn-main" style="height:80px; font-size:18px; background:var(--navy); border-radius:20px;" onclick="goMode('wallet')">학생 지갑 모드</button>
@@ -331,8 +372,15 @@
     let html5QrCode = null;
     let isPollingActive = false; 
 
-    function f(n) { return Number(n).toLocaleString() + '원'; }
-
+    function f(n) { 
+      if (n === undefined || n === null || n === "") return "0원";
+      
+      // 혹시 데이터에 이미 '원'이 붙어있거나 쉼표가 있을 경우를 대비해 숫자만 추출
+      let num = String(n).replace(/[^0-9-]/g, ""); 
+      
+      // 숫자로 변환 후 한국어 설정(ko-KR)으로 쉼표를 찍고 '원'을 붙임
+      return Number(num).toLocaleString('ko-KR') + "원"; 
+    }
     function customAlert(msg) {
       return new Promise(resolve => {
         document.getElementById('custom-alert-title').innerText = "알림";
@@ -416,28 +464,35 @@
 
     async function register() {
       const p = {
-        grade: document.getElementById('reg-grade').value, class: document.getElementById('reg-class').value,
-        num: document.getElementById('reg-num').value, name: document.getElementById('reg-name').value,
-        pw: document.getElementById('reg-pw').value, pw2: document.getElementById('reg-pw-confirm').value
+        grade: document.getElementById('reg-grade').value,
+        class: document.getElementById('reg-class').value,
+        num: document.getElementById('reg-num').value,
+        name: document.getElementById('reg-name').value,
+        // 💡 비밀번호 앞에 홑따옴표(')를 추가하여 구글 시트의 자동 숫자 변환을 막습니다.
+        pw: "'" + document.getElementById('reg-pw').value,
+        pw2: "'" + document.getElementById('reg-pw-confirm').value
       };
       if (!p.grade || !p.class || !p.num || !p.name || !p.pw) return await customAlert("모든 항목을 입력하세요.");
       if (p.pw !== p.pw2) return await customAlert("비밀번호가 일치하지 않습니다.");
       
       const res = await callApi('registerStudent', [p]);
       if (res.success) {
-        await customAlert(`1,000원을 회원가입 기념으로 지급했습니다.\n당신의 학번(ID)은 [${res.id}] 입니다.`);
+        // res.id(학번)도 0으로 시작할 수 있으므로, 알림창에서도 문자열로 처리됩니다.
+        await customAlert(`회원가입을 축하합니다!\n당신의 학번(ID)은 [${res.id}] 입니다.`);
         toggleAuth(false);
       } else await customAlert(res.msg);
     }
 
     async function login() {
       const id = document.getElementById('login-id').value;
-      const pw = document.getElementById('login-pw').value;
+      const pw = document.getElementById('login-pw').value; // 💡 여기는 '를 붙이지 않습니다!
+      
       const res = await callApi('loginStudent', [id, pw]);
       if (res.success) {
         currentStudent = { id, ...res };
         document.getElementById('user-info').innerText = `${res.name} 학생`;
-        document.getElementById('user-balance').innerText = f(res.balance);
+        // 💡 잔액 표시를 아래 f() 함수를 써서 9,600원 형태로 만듭니다.
+        document.getElementById('user-balance').innerText = f(res.balance); 
         nav('wallet-main');
       } else await customAlert(res.msg);
     }
@@ -474,16 +529,51 @@
       
       const listDiv = document.getElementById('receipt-list');
       if(res.success && res.data.length > 0) {
-        listDiv.innerHTML = res.data.reverse().map(r => {
-          const itemsHtml = r.items.map(item => `<div style="font-size:14px; color:var(--navy); margin-bottom:6px;">• ${item.name} * ${item.count} = ${f(item.price * item.count)}</div>`).join('');
+        // 💡 총 영수증 개수를 가져와서 누적 번호를 계산합니다.
+        const totalReceipts = res.data.length; 
+        
+        // 최신순(reverse)으로 정렬하여 보여줍니다.
+        listDiv.innerHTML = res.data.reverse().map((r, index) => {
+          
+          // 1. 영수증 번호 만들기 (총개수 - 현재인덱스로 0001, 0002 순서 생성)
+          const orderNum = String(totalReceipts - index).padStart(4, '0');
+          const receiptNo = `${currentStudent.id}-${orderNum}`;
+          
+          // 2. 상품명 괄호 제거 및 줄 맞춤
+          const itemsHtml = r.items.map(item => {
+            // 정규식을 사용해 " (영문)" 형태를 깔끔하게 지웁니다.
+            const cleanName = item.name.replace(/\s*\(.*?\)\s*/g, ''); 
+            return `
+              <div class="retro-row">
+                <span style="flex:2; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cleanName}</span>
+                <span style="flex:1; text-align:right;">${item.count}</span>
+                <span style="flex:1; text-align:right;">${f(item.price * item.count)}</span>
+              </div>`;
+          }).join('');
+
+          // 3. 실제 종이 영수증 모양 그리기
           return `
-          <div style="background:#f1f5f9; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom:16px;">
-            <div style="font-weight:bold; color:var(--sub); font-size:15px; margin-bottom:4px;">[영수증]</div>
-            <div style="font-size:13px; color:var(--sub); margin-bottom:16px;">결제 일시 : ${r.time}</div>
-            <div style="margin-bottom:16px;">${itemsHtml}</div>
-            <div style="border-top:1px dashed #b9c1c9; padding-top:16px; text-align:right;">
-              <span style="font-weight:900; color:var(--navy); font-size:18px;">총 결제 금액 : ${f(r.amount)}</span>
+          <div class="retro-receipt">
+            <div class="retro-header">
+              <img src="https://i.imgur.com/AprCv2B.png" alt="초리쌤 로고">
+              <div class="retro-title">초리쌤 키오스크</div>
             </div>
+            
+            <div style="font-size:12px; margin-bottom:4px;">[영수증 번호] ${receiptNo}</div>
+            <div style="font-size:12px; margin-bottom:8px;">[결제 일시] ${r.time}</div>
+            
+            <div class="retro-divider"></div>
+            <div class="retro-row" style="font-weight:bold;">
+              <span style="flex:2; text-align:left;">상품명</span>
+              <span style="flex:1; text-align:right;">수량</span>
+              <span style="flex:1; text-align:right;">금액</span>
+            </div>
+            <div class="retro-divider"></div>
+            
+            ${itemsHtml}
+            
+            <div class="retro-divider"></div>
+            <div class="retro-total">합계: ${f(r.amount)}</div>
           </div>`;
         }).join('');
       } else {
