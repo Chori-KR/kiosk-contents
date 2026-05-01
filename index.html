@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    /* 💡 선생님의 오리지널 컬러와 폰트 설정 완벽 유지 */
     :root { --teal: #20c997; --teal-dark: #12b886; --navy: #0a192f; --bg: #f8f9fa; --text: #212529; --sub: #868e96; --red: #fa5252; --white: #ffffff; }
     body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; overflow: hidden; height: 100vh; color: var(--text); }
     
@@ -30,35 +31,21 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      margin-bottom: 8px; /* 닫혀있을 때 간격 */
+      margin-bottom: 8px;
       font-weight: bold;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       position: relative;
-      z-index: 2; /* 영수증보다 위로 올라오게 */
+      z-index: 2;
     }
     .receipt-summary:active { transform: scale(0.98); }
     
-    .receipt-details {
-      display: none; /* 기본적으로 숨겨둠 */
-      margin-bottom: 24px;
-      animation: fadeIn 0.3s ease;
-    }
-    
-    .chevron {
-      margin-left: 12px;
-      font-size: 14px;
-      color: var(--sub); /* 화살표 색상 */
-    }
+    .receipt-details { display: none; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+    .chevron { margin-left: 12px; font-size: 14px; color: var(--sub); }
 
     .retro-receipt {
-      background: #fcfcfc;
-      border: 1px solid #ddd;
-      /* 💡 요약창 아래에서 자연스럽게 빠져나오는 느낌을 줍니다 */
-      margin-top: -20px; 
-      padding: 36px 20px 20px 20px; 
-      border-radius: 0 0 16px 16px; 
-      font-family: 'Courier New', Courier, monospace;
-      color: #333;
+      background: #fcfcfc; border: 1px solid #ddd; margin-top: -20px; 
+      padding: 36px 20px 20px 20px; border-radius: 0 0 16px 16px; 
+      font-family: 'Courier New', Courier, monospace; color: #333;
       box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
     }
     .retro-header { text-align: center; margin-bottom: 16px; }
@@ -68,7 +55,6 @@
     .retro-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
     .retro-total { text-align: right; font-size: 18px; font-weight: 900; margin-top: 12px; color: var(--navy); }
 
-    /* 모달 및 로딩 CSS */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.2s; }
     .modal { background: var(--white); padding: 24px; border-radius: 16px; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; }
     .modal h3 { margin: 0 0 16px; color: var(--navy); }
@@ -81,12 +67,12 @@
     .spinner { width: 40px; height: 40px; border: 4px solid var(--teal); border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* 반응형 그리드 시스템 (PC, 태블릿, 모바일 자동 정렬) */
     .responsive-grid { display: grid; gap: 15px; grid-template-columns: repeat(2, 1fr); align-content: start; }
     @media (min-width: 600px) { .responsive-grid { grid-template-columns: repeat(4, 1fr); } }
     @media (min-width: 1024px) { .responsive-grid { grid-template-columns: repeat(6, 1fr); } }
 
-    .kiosk-container { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; }
+    /* 💡 스크롤 맨 밑까지 내렸을 때 고정된 장바구니에 상품이 가려지지 않도록 하단 패딩 260px 추가 */
+    .kiosk-container { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 260px; min-height: 0; }
     
     .p-card { background: var(--white); border: 1px solid #ddd; border-radius: 12px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; cursor: pointer; transition: transform 0.1s; position: relative; }
     .p-card:active { transform: scale(0.95); }
@@ -104,16 +90,18 @@
     .tab { padding: 8px 16px; border-radius: 20px; background: #f1f5f9; color: var(--sub); font-weight: bold; border: none; cursor: pointer; font-size: 14px; }
     .tab.active { background: var(--navy); color: var(--white); }
 
-    /* 장바구니 하단 고정 */
+    /* 💡 핵심 수정: 장바구니 화면 하단 영구 고정 (position: fixed) */
     #cart-panel { 
+      position: fixed; bottom: 0; left: 0; width: 100%; box-sizing: border-box;
       background: var(--navy); color: var(--white); border-radius: 24px 24px 0 0; 
-      padding: 20px; display: none; flex-direction: column; 
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 100; flex-shrink: 0; 
-      max-height: 35vh; }
+      padding: 20px; display: flex; flex-direction: column; 
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.4); z-index: 1000;
+      max-height: 40vh; 
+    }
     .cart-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cart-items { overflow-y: auto; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; flex: 1; }
     .cart-item { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center; }
-    .btn-pay { background: var(--teal); color: var(--white); border: none; padding: 14px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+    .btn-pay { background: var(--teal); color: var(--white); border: none; padding: 14px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; width: 100%; flex-shrink: 0; transition: opacity 0.2s; }
 
     .qr-page { text-align: center; padding: 24px; flex: 1; overflow-y: auto; }
     #qr-code { background: #fff; padding: 16px; display: inline-block; border-radius: 16px; margin-bottom: 20px; border: 1px solid #eee; }
@@ -123,38 +111,30 @@
     .receipt-total { border-top: 1px solid #eee; padding-top: 8px; margin-top: 8px; font-weight: 900; font-size: 18px; color: var(--teal); text-align: right; }
     .btn-cancel { background: #f1f5f9; color: var(--sub); border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; flex-shrink: 0; }
 
-    /* 관리자 화면 분할 레이아웃 */
     .admin-split-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
     @media (min-width: 768px) {
       .admin-split-layout { flex-direction: row; }
       .admin-left-panel { width: 320px; padding: 16px; overflow-y: auto; border-right: 1px solid #eee; flex-shrink: 0; background: var(--white); }
       .admin-right-panel { flex: 1; padding: 16px; overflow-y: auto; background: var(--bg); }
     }
-
     .ad-p-item { position: relative; background: #fff; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #ddd; cursor: pointer; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .ad-p-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
     .ad-p-item .del-x { position: absolute; top: -8px; right: -8px; background: var(--red); color: #fff; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; cursor: pointer; z-index: 2; }
     .ad-p-item .name { font-size: 13px; font-weight: bold; color: var(--navy); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-bottom: 2px; }
     .ad-p-item .stock { font-size: 11px; color: var(--sub); }
-
     input, select { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; width: 100%; box-sizing: border-box; }
     .btn-main { background: var(--teal); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     .brand-img { width: 140px; margin: 0 auto 20px auto; display: block; }
 
-    /* 💡 프린트 전용 마법의 CSS (QR코드 인쇄용) */
     @media print {
-      body * { visibility: hidden; } /* 모든 화면 요소 숨기기 */
-      #print-area, #print-area * { visibility: visible; } /* 인쇄 영역만 살리기 */
-      #print-area { 
-        position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); 
-        width: 100%; text-align: center; margin: 0; padding: 0; box-shadow: none; border: none; 
-      }
-      /* QR 코드 크기를 종이에 맞게 뻥튀기 */
+      body * { visibility: hidden; } 
+      #print-area, #print-area * { visibility: visible; } 
+      #print-area { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 100%; text-align: center; margin: 0; padding: 0; box-shadow: none; border: none; }
       #print-area img, #print-area canvas { width: 400px !important; height: 400px !important; margin: 0 auto; display: block; }
       #print-title { font-size: 42px !important; margin-bottom: 20px !important; color: #000 !important; }
       #print-desc { font-size: 24px !important; margin-bottom: 50px !important; color: #333 !important; }
-      .no-print { display: none !important; } /* 인쇄하기 버튼 숨기기 */
-      @page { margin: 0; } /* 종이 여백 제거 */
+      .no-print { display: none !important; } 
+      @page { margin: 0; } 
     }
   </style>
 </head>
@@ -281,13 +261,21 @@
       <div class="responsive-grid" id="kiosk-list"></div>
     </div>
     
+    <!-- 💡 수정 및 고정된 장바구니 영역 (취소버튼 날림, 비우기버튼만 유지) -->
     <div id="cart-panel">
       <div class="cart-top">
-        <span style="font-weight:bold; font-size:18px;">장바구니</span>
+        <span style="font-weight:bold; font-size:18px;">🛒 주문 내역</span>
+        <button onclick="clearCart()" style="background:rgba(255,255,255,0.2); color:var(--white); border:none; padding:6px 14px; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer;">비우기</button>
+      </div>
+      <div class="cart-items" id="cart-items">
+        <div style="text-align:center; color:rgba(255,255,255,0.6); padding:20px;">장바구니가 비어있어요</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; margin-top:8px;">
+        <span style="font-size:14px; color:var(--white);">총 결제금액</span>
         <span id="cart-total-txt" style="font-weight:900; font-size:20px; color:var(--teal);">0원</span>
       </div>
-      <div class="cart-items" id="cart-items"></div>
-      <button class="btn-pay" onclick="requestPayment()">결제하기</button>
+      <!-- 결제 버튼이 화면을 꽉 채우도록 구성 -->
+      <button class="btn-pay" id="btn-pay-action" onclick="requestPayment()" style="opacity:0.5;" disabled>결제하기</button>
     </div>
   </div>
 
@@ -356,17 +344,13 @@
     </div>
 
     <div id="admin-invite" class="admin-tab-content" style="padding:24px; display:none; flex-direction:column; align-items:center; background:var(--bg); flex:1; overflow-y:auto;">
-      
       <div id="print-area" style="background:#fff; padding:40px 20px; border-radius:24px; box-shadow:0 4px 15px rgba(0,0,0,0.05); text-align:center; width:100%; max-width:500px;">
         <div id="print-title" style="font-size:26px; font-weight:900; color:var(--navy); margin-bottom:8px;">초리쌤 키오스크</div>
         <div id="print-desc" style="color:var(--sub); font-weight:bold; margin-bottom:24px;">스마트폰 카메라로 스캔하여 바로 입장하세요!</div>
-        
         <div id="invite-qr-code" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
       </div>
-      
       <button class="btn-main no-print" onclick="window.print()" style="margin-top:24px; width:100%; max-width:500px; font-size:18px; height:60px;">🖨️ A4 용지로 크게 인쇄하기</button>
     </div>
-
   </div>
 
   <script>
@@ -380,11 +364,7 @@
 
     function f(n) { 
       if (n === undefined || n === null || n === "") return "0원";
-      
-      // 혹시 데이터에 이미 '원'이 붙어있거나 쉼표가 있을 경우를 대비해 숫자만 추출
       let num = String(n).replace(/[^0-9-]/g, ""); 
-      
-      // 숫자로 변환 후 한국어 설정(ko-KR)으로 쉼표를 찍고 '원'을 붙임
       return Number(num).toLocaleString('ko-KR') + "원"; 
     }
     function customAlert(msg) {
@@ -453,7 +433,7 @@
         toggleAuth(false);
         nav('wallet-auth');
       }
-      if (mode === 'kiosk') { cart = []; updateCartUI(); loadKiosk(); nav('kiosk-main'); }
+      if (mode === 'kiosk') { clearCart(); loadKiosk(); nav('kiosk-main'); }
     }
 
     function toggleAuth(isReg) {
@@ -474,7 +454,6 @@
         class: document.getElementById('reg-class').value,
         num: document.getElementById('reg-num').value,
         name: document.getElementById('reg-name').value,
-        // 💡 비밀번호 앞에 홑따옴표(')를 추가하여 구글 시트의 자동 숫자 변환을 막습니다.
         pw: "'" + document.getElementById('reg-pw').value,
         pw2: "'" + document.getElementById('reg-pw-confirm').value
       };
@@ -483,7 +462,6 @@
       
       const res = await callApi('registerStudent', [p]);
       if (res.success) {
-        // res.id(학번)도 0으로 시작할 수 있으므로, 알림창에서도 문자열로 처리됩니다.
         await customAlert(`회원가입을 축하합니다!\n당신의 학번(ID)은 [${res.id}] 입니다.`);
         toggleAuth(false);
       } else await customAlert(res.msg);
@@ -491,13 +469,12 @@
 
     async function login() {
       const id = document.getElementById('login-id').value;
-      const pw = document.getElementById('login-pw').value; // 💡 여기는 '를 붙이지 않습니다!
+      const pw = document.getElementById('login-pw').value; 
       
       const res = await callApi('loginStudent', [id, pw]);
       if (res.success) {
         currentStudent = { id, ...res };
         document.getElementById('user-info').innerText = `${res.name} 학생`;
-        // 💡 잔액 표시를 아래 f() 함수를 써서 9,600원 형태로 만듭니다.
         document.getElementById('user-balance').innerText = f(res.balance); 
         nav('wallet-main');
       } else await customAlert(res.msg);
@@ -512,7 +489,7 @@
         if (res.success) {
           await customAlert("결제가 성공적으로 완료되었습니다!");
           closeScanner();
-          login(); // 잔액 새로고침
+          login(); 
         } else {
           await customAlert(res.msg);
           html5QrCode.resume();
@@ -551,7 +528,6 @@
               </div>`;
           }).join('');
 
-          // 💡 열고 닫을 때 서로를 구분하기 위한 고유 이름(ID) 만들기
           const detailId = `receipt-detail-${index}`;
           const chevronId = `chevron-${index}`;
 
@@ -596,11 +572,11 @@
       const chevron = document.getElementById(chevronId);
       
       if (detail.style.display === 'block') {
-        detail.style.display = 'none'; // 숨기기
-        chevron.innerText = '∨'; // 아래를 향한 부등호 (닫힘)
+        detail.style.display = 'none';
+        chevron.innerText = '∨';
       } else {
-        detail.style.display = 'block'; // 보이기
-        chevron.innerText = '∧'; // 위를 향한 부등호 (열림)
+        detail.style.display = 'block';
+        chevron.innerText = '∧';
       }
     }
 
@@ -662,12 +638,28 @@
       updateCartUI();
     }
 
+    /* 💡 에러의 주범이었던 clearCart 함수 완벽히 복구 */
+    function clearCart() {
+      cart = [];
+      updateCartUI();
+    }
+
+    /* 💡 결제 버튼 활성화 로직 완벽 복구 */
     function updateCartUI() {
-      const panel = document.getElementById('cart-panel');
       const list = document.getElementById('cart-items');
-      if (cart.length === 0) { panel.style.display = 'none'; return; }
+      const payBtn = document.getElementById('btn-pay-action');
       
-      panel.style.display = 'flex';
+      if (cart.length === 0) { 
+        list.innerHTML = `<div style="text-align:center; color:rgba(255,255,255,0.6); padding:20px;">장바구니가 비어있어요</div>`;
+        document.getElementById('cart-total-txt').innerText = "0원";
+        payBtn.style.opacity = "0.5";
+        payBtn.disabled = true; // 비어있으면 결제버튼 비활성화
+        return; 
+      }
+      
+      payBtn.style.opacity = "1";
+      payBtn.disabled = false; // 물건이 담기면 결제버튼 즉시 활성화!
+
       let total = 0;
       list.innerHTML = cart.map(i => {
         total += i.price * i.count;
@@ -675,10 +667,10 @@
           <div class="cart-item">
             <span>${i.name}</span>
             <div style="display:flex; align-items:center; gap:8px;">
-              <button onclick="event.stopPropagation(); updateCartCount('${i.name}', -1)" style="border:1px solid #dee2e6; background:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer;">-</button>
+              <button onclick="event.stopPropagation(); updateCartCount('${i.name}', -1)" style="border:none; background:rgba(255,255,255,0.2); color:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer;">-</button>
               <span style="font-weight:bold; width:16px; text-align:center;">${i.count}</span>
-              <button onclick="event.stopPropagation(); updateCartCount('${i.name}', 1)" style="border:1px solid #dee2e6; background:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer;">+</button>
-              <span style="width:70px; text-align:right; font-weight:bold; color:var(--navy);">${f(i.price * i.count)}</span>
+              <button onclick="event.stopPropagation(); updateCartCount('${i.name}', 1)" style="border:none; background:rgba(255,255,255,0.2); color:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer;">+</button>
+              <span style="width:70px; text-align:right; font-weight:bold; color:var(--teal);">${f(i.price * i.count)}</span>
             </div>
           </div>`;
       }).join('');
@@ -686,6 +678,7 @@
     }
 
     async function requestPayment() {
+      if (cart.length === 0) return; 
       const total = cart.reduce((s, i) => s + i.price * i.count, 0);
       const summary = cart.map(i => `${i.name}x${i.count}`).join(', ');
       const res = await callApi('createPaymentRequest', [total, summary, cart]);
@@ -715,7 +708,8 @@
           isPollingActive = false; 
           clearInterval(pollInterval);
           await customAlert("결제가 성공적으로 완료되었습니다!");
-          cart = []; updateCartUI(); nav('kiosk-main');
+          clearCart(); 
+          nav('kiosk-main');
         } else if (res.status === '잔액부족') {
           isPollingActive = false; 
           clearInterval(pollInterval);
@@ -737,38 +731,27 @@
       } else await customAlert("비밀번호가 틀렸습니다.");
     }
 
-    // 💡 탭 이동 시 초대 QR코드 함수도 연결
     function showAdminTab(t) {
       document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
       document.getElementById('admin-' + t).style.display = 'flex';
       document.querySelectorAll('#page-admin .tab').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       
-      // 💡 핵심 수정: 상품 탭 진입 시 무조건 폼을 깨끗하게 초기화합니다!
       if (t === 'product') { resetAdminForm(); loadAdminProducts(); } 
       if (t === 'asset') loadAdminStudents();
       if (t === 'invite') generateInviteQR(); 
     }
 
-    // 💡 마법 링크(초대장) QR코드를 그려주는 새로운 함수
     function generateInviteQR() {
       const qrContainer = document.getElementById('invite-qr-code');
-      qrContainer.innerHTML = ""; // 기존 QR 삭제
+      qrContainer.innerHTML = ""; 
       
       if (!API_URL) return;
       
-      // 현재 웹페이지 기본 주소 가져오기 (물음표 뒤에 붙은 거 다 떼어내기)
       const baseUrl = window.location.href.split('?')[0];
-      
-      // 구글 웹앱 주소를 ?api= 뒤에 안전하게 합성
       const magicLink = baseUrl + "?api=" + encodeURIComponent(API_URL);
       
-      // QR코드 그리기 (인쇄할 때 쨍하게 나오도록 250px 크기로 생성)
-      new QRCode(qrContainer, { 
-        text: magicLink, 
-        width: 250, 
-        height: 250 
-      });
+      new QRCode(qrContainer, { text: magicLink, width: 250, height: 250 });
     }
 
     async function loadAdminProducts() {
@@ -776,7 +759,6 @@
       const cats = [...new Set(products.map(p => p.category))];
       const sel = document.getElementById('ad-p-cat-select');
       
-      // 💡 핵심 수정: 맨 앞에 [카테고리 선택] 항목을 기본값(value="")으로 추가했습니다.
       sel.innerHTML = '<option value="" disabled selected>[카테고리 선택]</option><option value="direct">[+ 직접 입력]</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
       
       document.getElementById('ad-p-list').innerHTML = products.map(p => `
@@ -816,18 +798,13 @@
     }
 
     async function saveProduct() {
-  // 1. 먼저 선택된 값을 가져오고... (기존)
-  const catSelect = document.getElementById('ad-p-cat-select').value;
-  
-  // 💡 [여기서 추가!] 만약 선택된 값이 빈칸("")이라면?
-  // 선생님 아이디어로 넣은 "[카테고리 선택]"이 빈칸이기 때문입니다.
-  if (catSelect === "") return await customAlert("카테고리를 선택하거나 직접 입력해주세요.");
+      const catSelect = document.getElementById('ad-p-cat-select').value;
+      if (catSelect === "") return await customAlert("카테고리를 선택하거나 직접 입력해주세요.");
 
-  // 2. 이 아래부터는 기존과 동일하게 흘러갑니다.
-  const category = catSelect === 'direct' ? document.getElementById('ad-p-cat-direct').value : catSelect;
-  const name = document.getElementById('ad-p-name').value;
-  const price = document.getElementById('ad-p-price').value;
-  const stock = document.getElementById('ad-p-stock').value;
+      const category = catSelect === 'direct' ? document.getElementById('ad-p-cat-direct').value : catSelect;
+      const name = document.getElementById('ad-p-name').value;
+      const price = document.getElementById('ad-p-price').value;
+      const stock = document.getElementById('ad-p-stock').value;
       
       if (!category || !name || !price || !stock) return await customAlert("카테고리, 상품명, 가격, 재고는 필수 입력 항목입니다.");
 
@@ -852,7 +829,6 @@
       document.getElementById('ad-p-price').value = ""; document.getElementById('ad-p-stock').value = "";
       document.getElementById('ad-p-img').value = ""; document.getElementById('ad-p-cat-direct').value = "";
       
-      // 💡 핵심 수정: 초기값을 'direct'가 아니라 빈칸(선택 안함) 상태로 바꿉니다.
       document.getElementById('ad-p-cat-select').value = ""; 
       
       toggleCatInput();
@@ -872,12 +848,20 @@
       `).join('');
     }
 
+    /* 💡 관리자 자산 업데이트 후 입력칸 깔끔하게 비우기 적용 */
     async function updateAsset() {
       const ids = Array.from(document.querySelectorAll('.as-check:checked')).map(cb => cb.value);
-      const amt = document.getElementById('as-amt').value;
+      const amtInput = document.getElementById('as-amt');
+      const amt = amtInput.value;
       if (!ids.length || !amt) return await customAlert("학생을 선택하고 지급/차감할 금액을 입력하세요.");
+      
       const res = await callApi('updateAdminAsset', [ids, amt]);
-      if (res.success) { await customAlert("자산이 일괄 반영되었습니다."); loadAdminStudents(); }
+      if (res.success) { 
+        await customAlert("자산이 일괄 반영되었습니다."); 
+        amtInput.value = ''; // 입력칸 초기화
+        document.querySelectorAll('.as-check:checked').forEach(cb => cb.checked = false); // 체크박스 해제
+        loadAdminStudents(); 
+      }
     }
 
     async function removeStudent(id) {
@@ -887,7 +871,6 @@
       if (res.success) { await customAlert("삭제되었습니다."); loadAdminStudents(); } else { await customAlert(res.msg); }
     }
 
-    // 💡 자동 로그인 및 마법 링크 캐치
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const apiParam = urlParams.get('api');
